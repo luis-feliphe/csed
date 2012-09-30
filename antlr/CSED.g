@@ -1,5 +1,8 @@
 grammar CSED;
 
+
+
+
 options {
     output = AST;
 }
@@ -37,6 +40,12 @@ funDecl
     : retType ID '(' argList ')' '{' stat* '}' -> ^(FUN ID retType argList stat*)
     ;
 
+varDecl
+    : type ID ';'
+    | type ID '=' expr  ';'
+    ;
+
+
 retType
     : type
     | 'void'
@@ -62,6 +71,7 @@ stat
     | 'for' '(' ID '=' expr '..' expr ')' stat -> ^(FOR ID expr expr stat)
     | '{' stat* '}' -> ^(BLOCK stat*)
     | expr ';'!
+    | varDecl
     | ';'!                 // comando vazio
     ;
 
