@@ -1,0 +1,5 @@
+int teste(int a){
+int x;
+int b;
+int c = 3;
+}
