@@ -1,8 +1,5 @@
 grammar CSED;
 
-
-
-
 options {
     output = AST;
 }
@@ -18,7 +15,7 @@ tokens {
     WHILE;
     BLOCK;
 }
-
+/*
 @lexer::header {
 package br.ufpb.iged.csed;
 }
@@ -26,6 +23,16 @@ package br.ufpb.iged.csed;
 @header {
 package br.ufpb.iged.csed;
 }
+*/
+
+@members{SymbolTable symtab;}
+compilationUnit[SymbolTable symtab]
+@init{this.symtab = symtab;}
+	: varDecl+
+	;
+
+
+
 
 
 //-------------------------------------------------------------------
@@ -40,10 +47,15 @@ funDecl
     : retType ID '(' argList ')' '{' stat* '}' -> ^(FUN ID retType argList stat*)
     ;
 
+//@TODO ajustar na arvore
 varDecl
-    : type ID ';'
-    | type ID '=' expr  ';'
-    ;
+    	:type ID ('=' expr)? ';' 
+    	{
+    	System.out.println("line "+$ID.getLine()+": def "+$ID.text);
+	VariableSymbol vs = new VariableSymbol($ID.text, $type.tsym);
+	symtab.define(vs);
+	}	
+	;
 
 
 retType
@@ -51,8 +63,11 @@ retType
     | 'void'
     ;
 
-type
-    : 'int'
+type returns [Type tsym]
+@after{
+    System.out.println("line "+$start.getLine() + ": ref to "+$tsym.getName());
+    }
+    : 'int' {$tsym = (Type) symtab.resolve("int");}
     ;
 
 argList
@@ -97,9 +112,9 @@ multExpr
 
 // ----------------------------------------------
 // Sem sufixos para seleção usando . por enquanto
-suffixExpr
-    : primary ('.' ID)*
-    ;
+//suffixExpr
+//    : primary ('.' ID)*
+//    ;
 // ----------------------------------------------
 
 exprList
