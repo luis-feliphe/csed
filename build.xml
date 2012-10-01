@@ -10,6 +10,7 @@
 	    <!--arg path="./src/br/ufpb/iged/csed"/-->
 	    <arg path="./antlr/"/>
 	    <arg path="\${antlr.dir}/CSED.g"/>
+	    <arg path="\${antlr.dir}/DefRef.g"/>
 	</java>
     </target>
 
@@ -20,13 +21,12 @@
     </target>
 
     <target name="clear">
-	<delete file="./classes/br/ufpb/iged/csed/Csed.tokens"/>
-	<delete>
-		<fileset includes="**.class" dir="./classes/br/ufpb/iged/csed/"/>
-	</delete>
-	<!--delete file="./src/br/ufpb/iged/csed/CsedParser.java"/>
-        <delete file="./src/br/ufpb/iged/csed/CsedLexer.java"/>
-        <delete file="./src/br/ufpb/iged/csed/*.java"/>
-	<delete dir="./classes"/-->
+	<delete file="./antlr/CSED.tokens"/>
+	<delete file="./antlr/DefRef.tokens"/>
+	<delete file="./antlr/CSEDParser.java"/>
+	<delete file="./antlr/RefDef.java"/>
+        <delete file="./antlr/CSEDLexer.java"/>
+        <delete file="./antlr/DefRef.java"/>
+        <delete dir="./classes"/>
     </target>
 </project> 

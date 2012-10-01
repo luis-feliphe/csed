@@ -1,94 +1,75 @@
 grammar CSED;
 
+
 options {
-    output = AST;
-}
+  output = AST;              
+  ASTLabelType = CommonTree;}
 
 tokens {
-    PROG;
-    EXPR;
-    CALLREF;
-    FUN;
-    ATTR;
-    IF;
-    FOR;
-    WHILE;
-    BLOCK;
+  FUNC_DECL; 
+  ARG_DECL;   
+  BLOCK;
+  VAR_DECL;
+  CALL;
+  ELIST;       
+  EXPR; 
+  FOR;
+  WHILE;
+  IF;
+  CALLREF;
+  ATTR;
+  
 }
-/*
-@lexer::header {
-package br.ufpb.iged.csed;
-}
 
-@header {
-package br.ufpb.iged.csed;
-}
-*/
-
-@members{SymbolTable symtab;}
-compilationUnit[SymbolTable symtab]
-@init{this.symtab = symtab;}
-	: varDecl+
-	;
-
-
-
-
-
-//-------------------------------------------------------------------
-//--- especificacoes sintaticas -------------------------------------
-//-------------------------------------------------------------------
-
-prog
-    :  funDecl+  -> ^(PROG funDecl+)
+compilationUnit
+    :   (funDecl| varDecl)+
     ;
 
 funDecl
-    : retType ID '(' argList ')' '{' stat* '}' -> ^(FUN ID retType argList stat*)
+    :   retType ID '(' argList? ')' block
+        -> ^(FUNC_DECL retType ID argList? block)
     ;
-
-//@TODO ajustar na arvore
-varDecl
-    	:type ID ('=' expr)? ';' 
-    	{
-    	System.out.println("line "+$ID.getLine()+": def "+$ID.text);
-	VariableSymbol vs = new VariableSymbol($ID.text, $type.tsym);
-	symtab.define(vs);
-	}	
-	;
-
 
 retType
     : type
     | 'void'
     ;
 
-type returns [Type tsym]
-@after{
-    System.out.println("line "+$start.getLine() + ": ref to "+$tsym.getName());
-    }
-    : 'int' {$tsym = (Type) symtab.resolve("int");}
-    ;
-
 argList
-    : arg (',' arg)*
-    |
+    :   type ID (',' type ID)* -> ^(ARG_DECL type ID)+
     ;
 
-arg
-    : type ID
+type:  'int'
     ;
+
+block
+    :   '{' stat* '}' -> ^(BLOCK stat*)
+    ;
+
+
+varDecl
+    :   type ID ('=' expr)? ';' -> ^(VAR_DECL type ID expr?)
+    ;
+
+
 
 stat
     : ID '=' expr ';' -> ^(ATTR ID expr)
     | 'if' '(' expr ')' stat 'else' stat -> ^(IF expr stat stat)
-    | 'while' '(' expr ')' stat -> ^(WHILE expr stat)
-    | 'for' '(' ID '=' expr '..' expr ')' stat -> ^(FOR ID expr expr stat)
+//    | 'while' '(' expr ')' stat -> ^(WHILE expr stat)
+    | 'while' '(' expr ')' block -> ^(WHILE expr block)
+//    | 'for' '(' ID '=' expr '..' expr ')' stat -> ^(FOR ID expr expr stat)
+    | 'for' '(' ID '=' expr '..' expr ')' block -> ^(FOR ID expr expr block)
     | '{' stat* '}' -> ^(BLOCK stat*)
     | expr ';'!
     | varDecl
-    | ';'!                 // comando vazio
+    | ';'!                 
     ;
+
+
+
+
+
 
 expr
     : logExpr -> ^(EXPR logExpr)
@@ -110,17 +91,20 @@ multExpr
     : primary (('*' | '/')^ primary)*
     ;
 
-// ----------------------------------------------
-// Sem sufixos para seleção usando . por enquanto
-//suffixExpr
-//    : primary ('.' ID)*
-//    ;
-// ----------------------------------------------
 
 exprList
     : expr (',' expr)*
     |
     ;
+
+name
+    : ID ('.'^ ID)*
+    ;
+
+callOrRef
+    : name ('(' exprList ')')? -> ^(CALLREF name exprList?)
+    ;
+
 
 primary
     : INT
@@ -133,17 +117,13 @@ primary
     | STRING
     ;
 
-name
-    : ID ('.'^ ID)*
-    ;
 
-callOrRef
-    : name ('(' exprList ')')? -> ^(CALLREF name exprList?)
-    ;
 
-//
-//--- especificacoes lexicas para os tokens -------------------------
-//
+
+// --------o  especificacoes lexicas e tokens o------
+
+
+
 
 ID  : ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
     ;
@@ -167,11 +147,14 @@ STRING
     :  '"' ( ESC_SEQ | ~('\\'|'"') )* '"'
     ;
 
+
 CHAR:  '\'' ( ESC_SEQ | ~('\''|'\\') ) '\''
     ;
 
+
 fragment
 HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
+
 
 fragment
 ESC_SEQ
@@ -179,6 +162,7 @@ ESC_SEQ
     |   UNICODE_ESC
     |   OCTAL_ESC
     ;
+
 
 fragment
 OCTAL_ESC
@@ -191,3 +175,5 @@ fragment
 UNICODE_ESC
     :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
+
+

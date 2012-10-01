@@ -1,5 +1,21 @@
-int teste(int a){
-int x;
-int b;
-int c = 3;
+// global scope
+void  funcao (int x)
+{ 
+	int i= 15; 
+	int z = i;
+	
+	while (z > 10){
+
+		int varWhile1;
+		int varWhile2;
+	}
+
+ 
+	for (x = 1 .. 10){
+		int varFor1;
+		int varFor2;
+	}
 }
+
+
+
